@@ -44,7 +44,7 @@ Detected lines pixels
 
 #### 1. Provide a link to your final video output.
 
-Here's a [link to my video result](./test_videos_output/project_video.mp4)
+Here's a [link to my video result](./test_videos_output)
 
 
 The Project
