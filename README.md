@@ -1,6 +1,6 @@
 ## Advanced Lane Finding
 [![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
-![Lanes Image](./test_images/test_output1.png)
+![Lanes Image](./output_images/test_output2.png)
 
 ### Summary
 The goals / steps of this project were the following:
