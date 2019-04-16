@@ -22,7 +22,7 @@ The images for camera calibration are stored in the folder called camera_cal. T
 [image2]: ./test_images/test1.jpg "Road Transformed"
 [image3]: ./3.png "Binary Example"
 [image4]: ./4.png "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
+[image5]: ./5.png "Fit Visual"
 [image6]: ./examples/example_output.jpg "Output"
 [video1]: ./project_video.mp4 "Video"
 [image7]: ./mask.png "Mask"
@@ -83,5 +83,38 @@ Just applied cv2 method to transform image with matrix generated above.
 
 ![alt text][image4]
 
-### Detecting lane pixels and fit to find the lane boundary
+### Detecting lane pixels and finding the lane boundary
 
+In step 5 we are passing the warped/top down view of the road binary image to the function "fit_polynomial", to determine the actual curve / lane lines.
+
+    left_fit_p, right_fit_p, left_curverad, right_curverad, left_fit_m, right_fit_m = fit_polynomial(binary_warped)
+
+The function fit_polynomial in turn calls "find_lane_pixels" to find the lane pixels.
+
+In find_lane_pixels we took bottom part of the warped image and and detect areas where white pixels are.
+And this is start point for our lane lines.
+
+    midpoint = np.int(histogram.shape[0]//2)
+    leftx_base = np.argmax(histogram[:midpoint])
+    rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+    
+Then we take small area of image around white pixels of both lines.
+Divide vertical image size by some number which equals number of boxes that we can take through the image,
+and take mean value of x values of white pixels.
+
+    Here could be the copy of "find_lane_pixels" method.
+    
+find_lane_pixels returns x's and y's of both lines of lane, and binary image converted to three channels. 
+
+
+In fit_polynomial, after we received the pixels of the left and right lane that are supposed to be part of the left and right lane we try to draw a line: This can be done with np.polyfit - which draws a least squares polynomial fit. We do this once in pixel coordinates and once in meters. We need line in pixels for drawing the line onto the screen, and in meters for calculating the radius and the position of the car within the lanes.
+
+    # Fit a second order polynomial to each using `np.polyfit`
+    left_fit = np.polyfit(lefty, leftx, 2)
+    left_fit_m = np.polyfit(lefty*ym_per_p, leftx*xm_per_p, 2)   # for radius calculation
+    right_fit = np.polyfit(righty, rightx, 2)
+    right_fit_m = np.polyfit(righty*ym_per_p, rightx*xm_per_p, 2)  # for radius calculation
+        
+![alt text][image5]
+
+### The curvature of the lane and vehicle position with respect to center
