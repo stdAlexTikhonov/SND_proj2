@@ -20,12 +20,14 @@ The images for camera calibration are stored in the folder called camera_cal. T
 
 [image1]: ./examples/undistort_output.png "Undistorted"
 [image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./3.png "Binary Example"
-[image4]: ./4.png "Warp Example"
-[image5]: ./5.png "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
-[video1]: ./project_video.mp4 "Video"
-[image7]: ./mask.png "Mask"
+[image3]: output_images/3.png "Binary Example"
+[image4]: output_images/4.png "Warp Example"
+[image5]: output_images/5.png "Fit Visual"
+[image6]: output_images/polygon.png "Output"
+[image8]: output_images/warpedback.png "Output"
+[image9]: output_images/result.png "Output"
+[video1]: test_videos_output/project_video.mp4 "Video"
+[image7]: output_images/mask.png "Mask"
 
 ### Camera calibration
 The code for this step is contained in the first code cell of the IPython notebook located in "P2.ipynb".
@@ -118,3 +120,30 @@ In fit_polynomial, after we received the pixels of the left and right lane that 
 ![alt text][image5]
 
 ### The curvature of the lane and vehicle position with respect to center
+
+
+### Wrap back
+
+After i got the lane lines, I turned the coordinates into a polygon and draw it.
+
+![alt text][image6]
+
+Then with cv2 built-in method and inverse matrix I wraped image back.
+
+    lane_image_warped = cv2.warpPerspective(lane_image, Minv, undistortedFrame.shape[1::-1])
+
+![alt text][image8]
+
+### Combining all together
+
+At the very final step, we add the warped lane image on undistorted frame with a weight such that it appears transparent. We also compute the position of the car within the road and add texts onto the street.
+
+    result = cv2.addWeighted(undistortedFrame, 1, lane_image_warped, 0.25, 0)
+    
+    offcenter = get_offcenter(result, left_fit_m, right_fit_m)
+        
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(result, 'Radius of curvature: {0:>10.3f} m'.format(left_curverad), (20,60), font, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(result, 'Distance from lane center: {0:>10.3f} m'.format(offcenter), (20,130), font, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
+    
+![alt text][image9]
