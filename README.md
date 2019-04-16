@@ -121,6 +121,11 @@ In fit_polynomial, after we received the pixels of the left and right lane that 
 
 ### The curvature of the lane and vehicle position with respect to center
 
+    # We'll choose the maximum y-value -1, corresponding to the bottom of the image, where we want radius of curvature
+    y_eval = binary_warped.shape[0]-1
+    # Calculation of R_curve (radius of curvature)
+    left_curverad = ((1 + (2*left_fit_m[0]*y_eval*ym_per_p + left_fit_m[1])**2)**1.5) / np.absolute(2*left_fit_m[0])
+    right_curverad = ((1 + (2*right_fit_m[0]*y_eval*ym_per_p + right_fit_m[1])**2)**1.5) / np.absolute(2*right_fit_m[0])
 
 ### Wrap back
 
@@ -147,3 +152,60 @@ At the very final step, we add the warped lane image on undistorted frame with a
     cv2.putText(result, 'Distance from lane center: {0:>10.3f} m'.format(offcenter), (20,130), font, 1.5, (255, 255, 255), 2, cv2.LINE_AA)
     
 ![alt text][image9]
+
+
+### Discussion
+
+It was hard, i spent much time to figuring out how to detect line perfectly.
+
+At first i wrote a method which works really slow, because it go through each pixel literally.
+ 
+It's trying to exclude useless white pixels. Then i got that i can just mask some areas, and it works good.
+
+Not perfect, but good.
+
+    def excludeValues(binary_image):
+        sumval = binary_image.sum(axis=0)
+        sumvalY = binary_image.sum(axis=1)
+        
+        left = sumval[:len(sumval)//2]
+        right = sumval[len(sumval)//2:]
+    
+        maxLeft = max(left)
+        maxRight = max(right)
+        maxY = max(sumvalY)
+    
+        tresholdLeft = maxLeft - 50
+        tresholdRight = maxRight - 50
+        thresholdY = maxY / 2
+        
+        indexiesLeft = [index for index in range(len(left)) if left[index] > tresholdLeft]
+        indexiesRight = [index for index in range(len(right)) if right[index] > tresholdRight]
+        indexiesY = [index for index in range(len(sumvalY)) if sumvalY[index] > thresholdY]
+        
+        midpoint = binary_image.shape[1]//2
+        
+        indexiesRightTransformed = [x + midpoint for x in indexiesRight]
+        
+        indexies = np.concatenate((indexiesLeft,indexiesRightTransformed)) 
+      
+        minX = min(indexiesLeft)
+        maxX = max(indexiesRight)
+        minY = min(indexiesY)
+        maxY = max(indexiesY)
+        
+        masked = np.concatenate(([[350,maxY], [50,minY]],[[780, minY], [780,maxY]]), axis=0)
+        pts = np.array(masked, np.int32)
+        cv2.fillConvexPoly(binary_image, pts,(0,0,0))
+        
+        for y in range(binary_image.shape[0]):
+             if y not in indexiesY:
+                 for x in range(binary_image.shape[1]):
+                    if x not in indexies:
+                        binary_image[sumvalY[y],x] = 0
+        
+    
+             
+        return binary_image
+
+ 
